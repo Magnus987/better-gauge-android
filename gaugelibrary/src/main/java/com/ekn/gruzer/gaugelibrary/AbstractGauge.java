@@ -34,8 +34,8 @@ abstract class AbstractGauge extends View {
 
 
     private List<Range> ranges = new ArrayList<>();
-    private double oldValue = 0;
-    private double value = 0;
+    private double value = 0.0;
+    private double oldValue = 0.0;
     private double minValue = 0;
     private double maxValue = 100;
     private Paint needleColor;
@@ -48,6 +48,7 @@ abstract class AbstractGauge extends View {
     private float rectBottom = 400;
     private float padding = 0;
     private RectF rectF;
+    private ValueAnimator animator = new ValueAnimator();
     private boolean useRangeBGColor = false;
     private ValueFormatter formatter = new ValueFormatterImpl();
 
@@ -292,7 +293,7 @@ abstract class AbstractGauge extends View {
     }
 
     public void setValueColorAttr(int attrId) {
-        Log.d("GaugeLogs", "setValueThemeColor" + attrId);
+        Log.d("Gauge", "setValueThemeColor" + attrId);
         getTextPaint().setColor(resolveThemeAttribute(attrId));
         invalidate();
     }
@@ -303,10 +304,10 @@ abstract class AbstractGauge extends View {
         if (colorResolved) {
             int color = getContext().getColor(typedValue.resourceId);
             String attrName = getResources().getResourceEntryName(themeAttribute);
-            Log.d("GaugeLogs", "Using specified themeAttribute: " + attrName);
+            Log.d("Gauge", "Using specified themeAttribute: " + attrName);
             return color;
         }
-        Log.d("GaugeLogs", "Specified themeAttribute is invalid: " + themeAttribute);
+        Log.d("Gauge", "Specified themeAttribute is invalid: " + themeAttribute);
         int color = Color.RED;
         return color;
     }
@@ -357,22 +358,27 @@ abstract class AbstractGauge extends View {
 
 
     public void setValue(double targetValue) {
+        if (animator.isRunning()) {
+            Log.d("Gauge", "New Value requested, ending old animator...");
+            animator.end();
+        }
         Log.d("Gauge", "Animation start: " + oldValue + " TargetValue: " + targetValue);
-
-        ValueAnimator animator = ValueAnimator.ofFloat((float) oldValue, (float) targetValue);
-        animator.setDuration(400);
-        animator.addUpdateListener(animation -> {
-            this.value = (Float) animation.getAnimatedValue();
-            invalidate();
-        });
-        animator.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                Log.d("Gauge", "Animation ended.");
-                oldValue = targetValue;
-            }
-        });
-        animator.start();
+        if (oldValue != targetValue) {
+            animator = ValueAnimator.ofFloat((float) oldValue, (float) targetValue);
+            animator.setDuration(400);
+            animator.addUpdateListener(animation -> {
+                this.value = (Float) animator.getAnimatedValue();
+                invalidate();
+            });
+            animator.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    Log.d("Gauge", "Animation ended: end Value:" + animator.getAnimatedValue());
+                    oldValue = targetValue;
+                }
+            });
+            animator.start();
+        }
     }
 
     /**
