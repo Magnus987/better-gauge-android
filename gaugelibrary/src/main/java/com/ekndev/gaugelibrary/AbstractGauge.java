@@ -11,16 +11,21 @@
  * limitations under the License.
  *******************************************************************************/
 
-package com.ekndev.gaugelibrary;
+package com.ekn.gruzer.gaugelibrary;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 
-import com.ekndev.gaugelibrary.contract.ValueFormatter;
+import com.ekn.gruzer.gaugelibrary.contract.ValueFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +34,8 @@ abstract class AbstractGauge extends View {
 
 
     private List<Range> ranges = new ArrayList<>();
-    private double value = 0;
+    private double value = 0.0;
+    private double oldValue = 0.0;
     private double minValue = 0;
     private double maxValue = 100;
     private Paint needleColor;
@@ -42,6 +48,7 @@ abstract class AbstractGauge extends View {
     private float rectBottom = 400;
     private float padding = 0;
     private RectF rectF;
+    private ValueAnimator animator = new ValueAnimator();
     private boolean useRangeBGColor = false;
     private ValueFormatter formatter = new ValueFormatterImpl();
 
@@ -241,7 +248,7 @@ abstract class AbstractGauge extends View {
             return 100;
         } else if (value >= Math.max(min, max))
             return 0;
-        else{
+        else {
             double positive = Math.max(min, max);
             double result = Math.abs((positive - value) / (available) * 100);
             return (int) result;
@@ -259,7 +266,7 @@ abstract class AbstractGauge extends View {
             return 0;
         } else if (value >= Math.max(min, max))
             return 100;
-        else{
+        else {
             double negative = Math.abs(Math.min(min, max));
             double result = Math.abs((negative + value) / (available) * 100);
             return (int) result;
@@ -273,6 +280,7 @@ abstract class AbstractGauge extends View {
      */
     public void setValueColor(int color) {
         getTextPaint().setColor(color);
+
     }
 
     /**
@@ -284,10 +292,32 @@ abstract class AbstractGauge extends View {
         return getTextPaint().getColor();
     }
 
+    public void setValueColorAttr(int attrId) {
+        Log.d("Gauge", "setValueThemeColor" + attrId);
+        getTextPaint().setColor(resolveThemeAttribute(attrId));
+        invalidate();
+    }
+
+    private int resolveThemeAttribute(int themeAttribute) {
+        TypedValue typedValue = new TypedValue();
+        Boolean colorResolved = getContext().getTheme().resolveAttribute(themeAttribute, typedValue, true);
+        if (colorResolved) {
+            int color = getContext().getColor(typedValue.resourceId);
+            String attrName = getResources().getResourceEntryName(themeAttribute);
+            Log.d("Gauge", "Using specified themeAttribute: " + attrName);
+            return color;
+        }
+        Log.d("Gauge", "Specified themeAttribute is invalid: " + themeAttribute);
+        int color = Color.RED;
+        return color;
+    }
+
     protected Paint getTextPaint() {
+        //default attribute color to support Darkmode
+        int themeAttribute = android.R.attr.textColorPrimary;
         if (textPaint == null) {
             textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            textPaint.setColor(Color.BLACK);
+            textPaint.setColor(resolveThemeAttribute(themeAttribute));
             textPaint.setStyle(Paint.Style.FILL);
             textPaint.setTextSize(25f);
             textPaint.setTextAlign(Paint.Align.CENTER);
@@ -327,13 +357,33 @@ abstract class AbstractGauge extends View {
     }
 
 
-    public void setValue(double value) {
-        this.value = value;
-        invalidate();
+    public void setValue(double targetValue) {
+        if (animator.isRunning()) {
+            Log.d("Gauge", "New Value requested, ending old animator...");
+            animator.end();
+        }
+        Log.d("Gauge", "Animation start: " + oldValue + " TargetValue: " + targetValue);
+        if (oldValue != targetValue) {
+            animator = ValueAnimator.ofFloat((float) oldValue, (float) targetValue);
+            animator.setDuration(400);
+            animator.addUpdateListener(animation -> {
+                this.value = (Float) animator.getAnimatedValue();
+                invalidate();
+            });
+            animator.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    Log.d("Gauge", "Animation ended: end Value:" + animator.getAnimatedValue());
+                    oldValue = targetValue;
+                }
+            });
+            animator.start();
+        }
     }
 
     /**
      * Set Value Formatter
+     *
      * @param formatter {@link ValueFormatter}
      */
     public void setFormatter(ValueFormatter formatter) {

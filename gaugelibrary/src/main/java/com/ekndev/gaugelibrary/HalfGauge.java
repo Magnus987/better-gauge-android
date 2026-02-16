@@ -32,7 +32,7 @@ public class HalfGauge extends AbstractGauge {
     private Handler handler = new Handler();
     private boolean enableBackGroundShadow = true;
     private boolean enableNeedleShadow = true;
-    private boolean enableAnimation = true;
+    private boolean enableAnimation = false;
     private int minValueTextColor = Color.GRAY;
     private int maxValueTextColor = Color.GRAY;
 
@@ -252,6 +252,7 @@ public class HalfGauge extends AbstractGauge {
 
     /**
      * Set Min value text color
+     *
      * @param minValueTextColor {@link int}
      */
     public void setMinValueTextColor(int minValueTextColor) {
@@ -260,6 +261,7 @@ public class HalfGauge extends AbstractGauge {
 
     /**
      * Set Max value text color
+     *
      * @param maxValueTextColor {@link int}
      */
     public void setMaxValueTextColor(int maxValueTextColor) {
@@ -268,6 +270,7 @@ public class HalfGauge extends AbstractGauge {
 
     /**
      * Get current min value color
+     *
      * @return {@link int}
      */
     public int getMinValueTextColor() {
@@ -276,6 +279,7 @@ public class HalfGauge extends AbstractGauge {
 
     /**
      * Get current max value color
+     *
      * @return {@link int}
      */
     public int getMaxValueTextColor() {
