@@ -34,8 +34,8 @@ abstract class AbstractGauge extends View {
 
 
     private List<Range> ranges = new ArrayList<>();
-    private double value = -120.0;
-    private double oldValue = -120.0;
+    private double value = -125.0;
+    private double oldValue = -125.0;
     private double minValue = 0;
     private double maxValue = 100;
     private Paint needleColor;
