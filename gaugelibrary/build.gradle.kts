@@ -4,10 +4,10 @@ plugins {
 
 android {
     namespace = "com.ekn.gruzer.gaugelibrary"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
-        minSdk = 29
+        minSdk = 31
     }
 }
 
