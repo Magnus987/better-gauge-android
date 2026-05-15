@@ -4,23 +4,13 @@ plugins {
 
 android {
     namespace = "com.ekn.gruzer.gaugelibrary"
-    compileSdk = 34
+    compileSdk = 37
 
     defaultConfig {
-        minSdk = 35
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
+        minSdk = 29
     }
 }
 
 dependencies {
-    implementation("com.google.android.material:material:1.11.0")
+    implementation(libs.material)
 }
